@@ -19,6 +19,14 @@ def clean_phone(phone)
   end
 end
 
+def find_perfect_time(time_array)
+  time_count = Hash.new(0)
+  time_array.each { |time| time_count[time] += 1 }
+  amount = time_count.max_by { |__, value| value }
+  result = time_count.collect { |key, value| key if value == amount[1] }.compact
+  p result
+end
+
 def legislators_by_zipcode(zipcode)
   civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
   civic_info.key = 'AIzaSyClRzDqDh5MsXwnCWi0kOiiBivP6JsSyBw'
@@ -53,6 +61,8 @@ contents = CSV.open(
 template_letter = File.read('../form_letter.erb')
 erb_template = ERB.new template_letter
 
+time_array = []
+
 contents.each do |row|
   id = row[0]
 
@@ -64,7 +74,17 @@ contents.each do |row|
 
   legislators_name = legislators_by_zipcode(zipcode)
 
-  form_letter = erb_template.result(binding)
+  date = row[:regdate].split
 
-  save_thank_you_letter(id, form_letter)
+  day = date[0]
+
+  time = Time.parse(date[1]).hour
+
+  time_array << time
+
+  # form_letter = erb_template.result(binding)
+
+  # save_thank_you_letter(id, form_letter)
 end
+
+find_perfect_time(time_array)
