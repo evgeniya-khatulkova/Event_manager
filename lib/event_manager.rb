@@ -1,3 +1,5 @@
+WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
@@ -24,7 +26,8 @@ def find_perfect_time(time_array)
   time_array.each { |time| time_count[time] += 1 }
   amount = time_count.max_by { |__, value| value }
   result = time_count.collect { |key, value| key if value == amount[1] }.compact
-  p result
+
+  puts "Dear demanding boss, you better order advertisment on #{result.join(" or ")}."
 end
 
 def legislators_by_zipcode(zipcode)
@@ -62,6 +65,7 @@ template_letter = File.read('../form_letter.erb')
 erb_template = ERB.new template_letter
 
 time_array = []
+day_array = []
 
 contents.each do |row|
   id = row[0]
@@ -76,15 +80,22 @@ contents.each do |row|
 
   date = row[:regdate].split
 
-  day = date[0]
-
   time = Time.parse(date[1]).hour
 
   time_array << time
 
-  # form_letter = erb_template.result(binding)
+  day = Date.strptime(date[0], '%m/%d/%Y')
 
-  # save_thank_you_letter(id, form_letter)
+  day_array << WEEK[day.wday]
+
+  form_letter = erb_template.result(binding)
+
+  save_thank_you_letter(id, form_letter)
 end
 
+# finds perfect timing for advertisment
+# in hours perspective
 find_perfect_time(time_array)
+
+# in days of the week perspective
+find_perfect_time(day_array)
